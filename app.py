@@ -47,22 +47,30 @@ def add_item():
 @app.route('/inventory', methods=['GET'])
 def get_item():
     """Search for an item in the inventory by full or partial name"""
-    item_name = request.args.get("name")  # Get the "name" parameter
+    # Get the "name" parameter
+    item_name = request.args.get("name")  
 
     if not item_name:
-        return jsonify({"error": "Missing 'name' parameter"}), 400  # Bad Request if no name is provided
+         # Bad Request if no name is provided
+        return jsonify({"error": "Missing 'name' parameter"}), 400  
 
     # Find exact matches first
     if item_name in inventory:
         return jsonify(inventory[item_name]), 200
 
     # Search for partial matches
-    matching_items = {name: details for name, details in inventory.items() if item_name.lower() in name.lower()}
+    matching_items = {
+        name: details 
+        for name, details in inventory.items() 
+        if item_name.lower() in name.lower()
+        }
 
     if matching_items:
-        return jsonify(matching_items), 200  # Return all partial matches
+        # Return all partial matches
+        return jsonify(matching_items), 200  
     else:
-        return jsonify({"error": "No matching items found"}), 406  # Return 406 if not acceptable
+        # Return 406 if not acceptable
+        return jsonify({"error": "No matching items found"}), 406  
 
 @app.route('/inventory', methods=['PUT'])
 def update_item():
@@ -71,18 +79,21 @@ def update_item():
 
     # Validate input
     if not data or "name" not in data or "quantity" not in data:
-        return jsonify({"error": "Missing required fields"}), 400  # Bad Request
+        # Bad Request
+        return jsonify({"error": "Missing required fields"}), 400  
 
     name = data["name"]
     quantity_change = data["quantity"]
 
     # Check if item exists in inventory
     if name not in inventory:
-        return jsonify({"error": "Item not found"}), 404  # Not Found
+        # Not Found
+        return jsonify({"error": "Item not found"}), 404  
 
     # Ensure valid quantity reduction
     if inventory[name]["quantity"] + quantity_change < 0:
-        return jsonify({"error": "Cannot reduce quantity below zero"}), 406  # Not Acceptable
+        # Not Acceptable
+        return jsonify({"error": "Cannot reduce quantity below zero"}), 406  
 
     # Update quantity
     inventory[name]["quantity"] += quantity_change
@@ -90,9 +101,10 @@ def update_item():
     # If quantity reaches 0, remove the item and return 204 
     if inventory[name]["quantity"] == 0:
         del inventory[name]
-        return '', 204  # (successful deletion)
-
-    return jsonify({"message": "Item updated", "inventory": inventory[name]}), 200  # Success
+        # UPDATED ERROR
+        return jsonify({"message": "Quantity zero, item removed"}), 204  
+    # Success
+    return jsonify({"message": "Item updated", "inventory": inventory[name]}), 200  
 
        
 @app.route('/inventory', methods=['DELETE'])
@@ -102,19 +114,21 @@ def delete_item():
 
     # Validate input
     if not data or "name" not in data:
-        return jsonify({"error": "Missing 'name' field"}), 400  # Bad Request
+        # Bad Request
+        return jsonify({"error": "Missing 'name' field"}), 400  
 
     name = data["name"]
 
     # Check if item exists in inventory
     if name not in inventory:
-        return jsonify({"error": "Item not found"}), 404  # Not Found
+        # Not Found
+        return jsonify({"error": "Item not found"}), 404  
 
     # Remove the item
     del inventory[name]
 
-    return '', 204  # No Content (successful deletion)
-
+    # UPDATED ERROR
+    return jsonify({"message": "Item successfully deleted"}), 204
 
 if __name__ == '__main__':
     app.run(debug=True)
